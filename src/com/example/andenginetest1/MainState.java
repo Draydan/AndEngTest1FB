@@ -14,7 +14,9 @@ public class MainState extends Scene {
 	
 	private static final int MAIN_MENU_STATE = 0;
 	private static final int SELECT_LEVELS_STATE = 1;
-	private static final int GAME_RUNNING_STATE = 2;	
+	private static final int GAME_RUNNING_STATE = 2;
+	//private static final int GAME_STARTING_STATE = 3;
+	//private static final int GAME_OVERING_STATE = 4;
 	
 	public MainState()
 	{
