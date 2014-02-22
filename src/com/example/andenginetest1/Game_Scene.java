@@ -1,23 +1,22 @@
 package com.example.andenginetest1;
 
-import java.nio.channels.Pipe;
 import java.util.ArrayList;
 
-import org.andengine.engine.handler.collision.CollisionHandler;
-import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.scene.CameraScene;
+import org.andengine.entity.sprite.AnimatedSprite;
+import org.andengine.entity.sprite.Sprite;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
-import org.andengine.util.color.Color;
 
 public class Game_Scene extends CameraScene {
 	
-	public float PulseDirection = 0.1f;
-	public final Rectangle bird;
+	public final AnimatedSprite bird;
+	
+	public float PulseDirection = 0.1f;	
 	public double Vx=10, Vy=0;
-	public final double g = 100;
+	public final double g = 300;
 	public final int pipeSpeed = -80;
-	public final int pushForce = -120;
+	public final int pushSpeed = -150;
 	public boolean loss = false;
 	
 	public double spawnTimer = 3;
@@ -39,15 +38,19 @@ public class Game_Scene extends CameraScene {
 	private static final double PIPE_TO_SCREEN_POSITION = 0.2;
 	private static final double PIPE_TO_SCREEN_HEIGHT = 0.15;
 	
-	ArrayList<Rectangle> Pipes = new  ArrayList<Rectangle>();
-	
+	ArrayList<Sprite> Pipes = new  ArrayList<Sprite>();	
 	
 	public Game_Scene()
 	{
 		super(MainActivity.Camera);
-		setBackgroundEnabled(false);
+		setBackgroundEnabled(true);
+		//Sprite bSprite = new   
+		//SpriteBackground sb = new SpriteBackground(bSprite);
+		bird = new AnimatedSprite(0, 0, MainActivity.main.Bird_TR, new VertexBufferObjectManager());
+		bird.setX(BIRD_STARTING_X);
+		bird.setY(BIRD_STARTING_Y);
 		
-		bird = new Rectangle(BIRD_STARTING_X ,BIRD_STARTING_Y , 50, 50, new VertexBufferObjectManager()) 
+		//bird = new Rectangle(BIRD_STARTING_X ,BIRD_STARTING_Y , 50, 50, new VertexBufferObjectManager()) 
 		{
 //			public boolean onAreaTouched(org.andengine.input.touch.TouchEvent pSceneTouchEvent, 
 //					float pTouchAreaLocalX, float pTouchAreaLocalY) 
@@ -59,13 +62,14 @@ public class Game_Scene extends CameraScene {
 		};
 		
 		attachChild(bird);
-		bird.setColor(Color.RED);		
+		bird.animate(200);
+		//bird.setColor(Color.RED);		
 		//registerTouchArea(bird);
 	}
 	
 	@Override
 	public boolean onSceneTouchEvent(TouchEvent pSceneTouchEvent) {
-		Vy = pushForce;		 
+		Vy = pushSpeed;		 
 		return super.onSceneTouchEvent(pSceneTouchEvent);
 	}
 	
@@ -109,18 +113,28 @@ public class Game_Scene extends CameraScene {
 			if (spawnTimer >= spawnSpawn)
 			{
 				spawnTimer = 0;
-				Rectangle newPipe = new Rectangle(Math.round(MainActivity.CAMERA_WIDTH * 0.9), 
+				Sprite newPipe = new Sprite(0, 0, MainActivity.main.Pipe_TR, new VertexBufferObjectManager());
+				newPipe.setX(Math.round(MainActivity.CAMERA_WIDTH * 0.9));
+				newPipe.setY(Math.round(MainActivity.CAMERA_HEIGHT * 
+						(PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * Math.sin(Pipes.size()*2*Math.PI/pipesInRotation))));
+				/*Rectangle newPipe = new Rectangle(Math.round(MainActivity.CAMERA_WIDTH * 0.9), 
 					Math.round(MainActivity.CAMERA_HEIGHT * 
 						(PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * Math.sin(Pipes.size()*2*Math.PI/pipesInRotation))) , 
 							50, 100, new VertexBufferObjectManager());
+				*/
 				attachChild(newPipe);
-				newPipe.setColor(Color.GREEN);
-				Rectangle newPipe2 = new Rectangle(Math.round(MainActivity.CAMERA_WIDTH * 0.9), 
-					Math.round(MainActivity.CAMERA_HEIGHT * 
-						(1 - PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * Math.sin(Pipes.size()*2*Math.PI/pipesInRotation))) ,
-							50, 100, new VertexBufferObjectManager());
+				//newPipe.setColor(Color.GREEN);
+				//Rectangle newPipe2 = new Rectangle(Math.round(MainActivity.CAMERA_WIDTH * 0.9),
+				Sprite newPipe2 = new Sprite(0, 0, MainActivity.main.Pipe_TR, new VertexBufferObjectManager());
+				newPipe2.setX(Math.round(MainActivity.CAMERA_WIDTH * 0.9));
+				newPipe2.setY(Math.round(MainActivity.CAMERA_HEIGHT * 
+						(1 - PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * Math.sin(Pipes.size()*2*Math.PI/pipesInRotation))));
+				newPipe2.setRotation(180);//(float) Math.PI);
+//					Math.round(MainActivity.CAMERA_HEIGHT * 
+//						(1 - PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * Math.sin(Pipes.size()*2*Math.PI/pipesInRotation))) ,
+//							50, 100, new VertexBufferObjectManager());
 				attachChild(newPipe2);
-				newPipe2.setColor(Color.GREEN);
+				//newPipe2.setColor(Color.GREEN);
 				Pipes.add(newPipe2);
 				Pipes.add(newPipe);
 			}
@@ -129,7 +143,7 @@ public class Game_Scene extends CameraScene {
 			// move pipes
 			for(int pi=0; pi<Pipes.size(); pi++)
 			{
-				Rectangle currPipe = Pipes.get(pi); 
+				Sprite currPipe = Pipes.get(pi); 
 				currPipe.setX(currPipe.getX() + pipeSpeed * pSecondsElapsed);
 			}
 			//-------------
@@ -137,7 +151,7 @@ public class Game_Scene extends CameraScene {
 			// bird collision check
 			for(int pi=0; pi<Pipes.size(); pi++)
 			{
-				Rectangle currPipe = Pipes.get(pi);
+				Sprite currPipe = Pipes.get(pi);
 				float px = currPipe.getX();
 				float py = currPipe.getY();
 				float pw = currPipe.getWidth();
@@ -188,7 +202,7 @@ public class Game_Scene extends CameraScene {
 	{
 		for(int pi = Pipes.size()-1; pi>=0; pi--) 
 		{
-			Rectangle currPipe = Pipes.remove(pi);			
+			Sprite currPipe = Pipes.remove(pi);			
 			//currPipe.dispose();
 			detachChild(currPipe);
 		}		
