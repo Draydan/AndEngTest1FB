@@ -3,14 +3,18 @@ package com.example.andenginetest1;
 import java.util.ArrayList;
 
 import org.andengine.entity.scene.CameraScene;
+import org.andengine.entity.scene.background.SpriteBackground;
 import org.andengine.entity.sprite.AnimatedSprite;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
+import org.andengine.entity.text.*;
 
 public class Game_Scene extends CameraScene {
 	
 	public final AnimatedSprite bird;
+	public int score = 0;
+	public int hiscore = 0;
 	
 	public float PulseDirection = 0.1f;	
 	public double Vx=10, Vy=0;
@@ -22,6 +26,9 @@ public class Game_Scene extends CameraScene {
 	public double spawnTimer = 3;
 	public final double spawnSpawn = 3; // seconds
 	public final int pipesInRotation = 12;
+	public float sizeGrowth = 0;
+	public final float sizeGrowthStep = 0.02f;
+	public final float sizeGrowthThreshold = 0.2f;
 	
 	public double deathTimer = 0;
 	public final double deathTimerEndSeconds = 2; 
@@ -43,9 +50,17 @@ public class Game_Scene extends CameraScene {
 	public Game_Scene()
 	{
 		super(MainActivity.Camera);
+		
+		
+		//Text _text1 = new Text(100, 100, MainActivity.font_BosaNova22, "Hello, AndEngine!\n\nGoodbye.", null);
+		//_text1.setColor(127/255f, 127/255f, 255/255f); //÷вет текста будет сиреневый
+		//this.attachChild(_text1);
+		
 		setBackgroundEnabled(true);
-		//Sprite bSprite = new   
-		//SpriteBackground sb = new SpriteBackground(bSprite);
+		Sprite BGSprite = new Sprite(0,  0, MainActivity.main.BG_TR, new VertexBufferObjectManager());   
+		SpriteBackground sb = new SpriteBackground(BGSprite);
+		this.setBackground(sb);
+		
 		bird = new AnimatedSprite(0, 0, MainActivity.main.Bird_TR, new VertexBufferObjectManager());
 		bird.setX(BIRD_STARTING_X);
 		bird.setY(BIRD_STARTING_Y);
@@ -113,10 +128,12 @@ public class Game_Scene extends CameraScene {
 			if (spawnTimer >= spawnSpawn)
 			{
 				spawnTimer = 0;
+				float sino = (float)Math.sin(Pipes.size()*2*Math.PI/pipesInRotation);
+				float signo = Math.signum(sino);
 				Sprite newPipe = new Sprite(0, 0, MainActivity.main.Pipe_TR, new VertexBufferObjectManager());
 				newPipe.setX(Math.round(MainActivity.CAMERA_WIDTH * 0.9));
 				newPipe.setY(Math.round(MainActivity.CAMERA_HEIGHT * 
-						(PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * Math.sin(Pipes.size()*2*Math.PI/pipesInRotation))));
+						(sizeGrowth * signo + PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * sino)));
 				/*Rectangle newPipe = new Rectangle(Math.round(MainActivity.CAMERA_WIDTH * 0.9), 
 					Math.round(MainActivity.CAMERA_HEIGHT * 
 						(PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * Math.sin(Pipes.size()*2*Math.PI/pipesInRotation))) , 
@@ -128,7 +145,7 @@ public class Game_Scene extends CameraScene {
 				Sprite newPipe2 = new Sprite(0, 0, MainActivity.main.Pipe_TR, new VertexBufferObjectManager());
 				newPipe2.setX(Math.round(MainActivity.CAMERA_WIDTH * 0.9));
 				newPipe2.setY(Math.round(MainActivity.CAMERA_HEIGHT * 
-						(1 - PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * Math.sin(Pipes.size()*2*Math.PI/pipesInRotation))));
+						(-sizeGrowth * signo + 1 - PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * sino)));
 				newPipe2.setRotation(180);//(float) Math.PI);
 //					Math.round(MainActivity.CAMERA_HEIGHT * 
 //						(1 - PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * Math.sin(Pipes.size()*2*Math.PI/pipesInRotation))) ,
@@ -137,6 +154,8 @@ public class Game_Scene extends CameraScene {
 				//newPipe2.setColor(Color.GREEN);
 				Pipes.add(newPipe2);
 				Pipes.add(newPipe);
+				
+				if(sizeGrowth <= sizeGrowthThreshold) sizeGrowth += sizeGrowthStep;
 			}
 			//-----
 			
@@ -159,26 +178,38 @@ public class Game_Scene extends CameraScene {
 
 				float bx = bird.getX();
 				float by = bird.getY();
-				float bw = bird.getWidth();
-				float bh = bird.getHeight();				
+				float bw = bird.getWidth() * 0.66f;
+				float bh = bird.getHeight() * 0.66f;				
 				//if(Math.abs(currPipe.getX() - bird.getX()) < (currPipe.getWidth() + bird.getWidth())/2 
 				//		&& Math.abs(currPipe.getY() - bird.getY()) < (currPipe.getHeight() + bird.getHeight())/2)
-				if(( (px > bx && px < bx+bw) || (px+pw > bx && px+pw < bx+bw)) 
+				if(
+						(
+						( (px > bx && px < bx+bw) || (px+pw > bx && px+pw < bx+bw)) 
 						&&
 					( (py > by && py < by+bh) || (py+ph > by && py+ph < by+bh))
 						)
+						||
+						(by<=0 || by >= MainActivity.CAMERA_HEIGHT)
+				)
 				{
 					GamePlayState = GAME_OVERING_STATE;
 					deathTimer = 0;
 				}
+				
+				if (bx > px) score = pi+1;
 			}
 			//---
-			break;
+			
+			bird.setRotation((float) (Math.atan2(Vy, -pipeSpeed)*180/Math.PI / 2));
+			
+			break; // end running-state
 			
 			case GAME_OVERING_STATE:
+				if (score>hiscore) hiscore = score;
 				deathTimer += pSecondsElapsed;
 				if(deathTimer >= deathTimerEndSeconds) 
 				{
+					
 					GamePlayState = GAME_STARTING_STATE;
 					EndingPlay();
 					MainState.ShowMainScene();
@@ -196,10 +227,12 @@ public class Game_Scene extends CameraScene {
 	{
 		bird.setX(BIRD_STARTING_X);
 		bird.setY(BIRD_STARTING_Y);
+		sizeGrowth = 0;
 	}
 	
 	public void EndingPlay()
 	{
+		score = 0;
 		for(int pi = Pipes.size()-1; pi>=0; pi--) 
 		{
 			Sprite currPipe = Pipes.remove(pi);			
