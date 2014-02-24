@@ -16,6 +16,7 @@ import org.andengine.opengl.texture.TextureOptions;
 import org.andengine.opengl.font.*;
  
 import android.content.res.AssetManager;
+import android.graphics.Typeface;
 import android.view.KeyEvent;
  
 public class MainActivity extends SimpleBaseGameActivity{
@@ -25,9 +26,13 @@ public class MainActivity extends SimpleBaseGameActivity{
 	public TextureRegion BG_TR;
 	public static Font font_BosaNova54;
 	public static Font font_BosaNova22;
+	public static Font mFont;
 	
 	public static final int CAMERA_WIDTH = 800;
 	public static final int CAMERA_HEIGHT = 480;
+	
+	public int score = 0;
+	public int hiscore = 0;	
 
 	public static MainState MainState;
 	public static Camera Camera;
@@ -86,6 +91,12 @@ public class MainActivity extends SimpleBaseGameActivity{
         tm.loadTexture(Texture2);
         tm.loadTexture(Texture3);
         
+        
+		mFont = FontFactory.create(this.getFontManager(), 
+				this.getTextureManager(), 256, 256, 
+				Typeface.create(Typeface.DEFAULT, Typeface.BOLD), 32, Color.WHITE_ABGR_PACKED_INT);
+		mFont.load();  
+		
         /*
         FontManager fm = mEngine.getFontManager();
         AssetManager am = this.getAssets(); 

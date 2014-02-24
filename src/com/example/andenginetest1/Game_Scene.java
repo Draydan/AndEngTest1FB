@@ -8,13 +8,13 @@ import org.andengine.entity.sprite.AnimatedSprite;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
+import org.andengine.util.HorizontalAlign;
+import org.andengine.util.color.Color;
 import org.andengine.entity.text.*;
 
 public class Game_Scene extends CameraScene {
 	
 	public final AnimatedSprite bird;
-	public int score = 0;
-	public int hiscore = 0;
 	
 	public float PulseDirection = 0.1f;	
 	public double Vx=10, Vy=0;
@@ -34,6 +34,7 @@ public class Game_Scene extends CameraScene {
 	public final double deathTimerEndSeconds = 2; 
 	
 	private int GamePlayState = 0; 
+	Text scoreText;	
 	
 	private static final int GAME_RUNNING_STATE = 2;
 	private static final int GAME_STARTING_STATE = 3;
@@ -51,10 +52,7 @@ public class Game_Scene extends CameraScene {
 	{
 		super(MainActivity.Camera);
 		
-		
-		//Text _text1 = new Text(100, 100, MainActivity.font_BosaNova22, "Hello, AndEngine!\n\nGoodbye.", null);
-		//_text1.setColor(127/255f, 127/255f, 255/255f); //÷вет текста будет сиреневый
-		//this.attachChild(_text1);
+		//final Text centerText = new Text(100, 40, this.mFont, "Hello AndEngine!\nYou can even have multilined text!", new TextOptions(HorizontalAlign.CENTER), vertexBufferObjectManager);		
 		
 		setBackgroundEnabled(true);
 		Sprite BGSprite = new Sprite(0,  0, MainActivity.main.BG_TR, new VertexBufferObjectManager());   
@@ -100,6 +98,17 @@ public class Game_Scene extends CameraScene {
 		setIgnoreUpdate(true);
 	}
 	
+	private String GenerateScoreText()
+	{
+		if (MainActivity.main.score < 3)
+			return "Weak! Score: " + MainActivity.main.score;
+		if (MainActivity.main.score < 6)
+			return "Not bad! Score: " + MainActivity.main.score;
+		if (MainActivity.main.score < 10)
+			return "Much Score: " + MainActivity.main.score;		
+		return "Wicked Sick! Score: " + MainActivity.main.score;		
+	}
+	
 	@Override
 	protected void onManagedUpdate(float pSecondsElapsed) {
 		switch(GamePlayState)
@@ -132,8 +141,10 @@ public class Game_Scene extends CameraScene {
 				float signo = Math.signum(sino);
 				Sprite newPipe = new Sprite(0, 0, MainActivity.main.Pipe_TR, new VertexBufferObjectManager());
 				newPipe.setX(Math.round(MainActivity.CAMERA_WIDTH * 0.9));
-				newPipe.setY(Math.round(MainActivity.CAMERA_HEIGHT * 
+				newPipe.setY(0);
+				newPipe.setHeight(Math.round(MainActivity.CAMERA_HEIGHT * 
 						(sizeGrowth * signo + PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * sino)));
+				
 				/*Rectangle newPipe = new Rectangle(Math.round(MainActivity.CAMERA_WIDTH * 0.9), 
 					Math.round(MainActivity.CAMERA_HEIGHT * 
 						(PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * Math.sin(Pipes.size()*2*Math.PI/pipesInRotation))) , 
@@ -146,7 +157,11 @@ public class Game_Scene extends CameraScene {
 				newPipe2.setX(Math.round(MainActivity.CAMERA_WIDTH * 0.9));
 				newPipe2.setY(Math.round(MainActivity.CAMERA_HEIGHT * 
 						(-sizeGrowth * signo + 1 - PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * sino)));
-				newPipe2.setRotation(180);//(float) Math.PI);
+				
+				newPipe2.setHeight(MainActivity.CAMERA_HEIGHT - newPipe2.getY());
+				
+				//newPipe2.setRotation(180);//(float) Math.PI);
+				
 //					Math.round(MainActivity.CAMERA_HEIGHT * 
 //						(1 - PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * Math.sin(Pipes.size()*2*Math.PI/pipesInRotation))) ,
 //							50, 100, new VertexBufferObjectManager());
@@ -194,9 +209,13 @@ public class Game_Scene extends CameraScene {
 				{
 					GamePlayState = GAME_OVERING_STATE;
 					deathTimer = 0;
+					scoreText = new Text(100, 100, MainActivity.mFont, GenerateScoreText(), null);
+					scoreText.setColor(Color.YELLOW);//127/255f, 127/255f, 255/255f); //÷вет текста будет сиреневый
+					this.attachChild(scoreText);
+					scoreText.setColor(Color.RED);
 				}
 				
-				if (bx > px) score = pi+1;
+				if (bx > px) MainActivity.main.score = (pi+1)/2;
 			}
 			//---
 			
@@ -205,11 +224,11 @@ public class Game_Scene extends CameraScene {
 			break; // end running-state
 			
 			case GAME_OVERING_STATE:
-				if (score>hiscore) hiscore = score;
+				if (MainActivity.main.score>MainActivity.main.hiscore) MainActivity.main.hiscore = MainActivity.main.score;
 				deathTimer += pSecondsElapsed;
 				if(deathTimer >= deathTimerEndSeconds) 
-				{
-					
+				{					
+					this.detachChild(scoreText);
 					GamePlayState = GAME_STARTING_STATE;
 					EndingPlay();
 					MainState.ShowMainScene();
@@ -228,11 +247,12 @@ public class Game_Scene extends CameraScene {
 		bird.setX(BIRD_STARTING_X);
 		bird.setY(BIRD_STARTING_Y);
 		sizeGrowth = 0;
+		MainActivity.main.score = 0;
 	}
 	
 	public void EndingPlay()
 	{
-		score = 0;
+		//MainActivity.main.score = 0;
 		for(int pi = Pipes.size()-1; pi>=0; pi--) 
 		{
 			Sprite currPipe = Pipes.remove(pi);			
