@@ -20,14 +20,14 @@ public class Game_Scene extends CameraScene {
 	public double Vx=10, Vy=0;
 	public final double g = 300;
 	public final int pipeSpeed = -80;
-	public final int pushSpeed = -150;
+	public final int pushSpeed = -140;
 	public boolean loss = false;
 	
-	public double spawnTimer = 3;
-	public final double spawnSpawn = 3; // seconds
+	public double spawnTimer = 0;
+	public final double spawnSpawn = 2.5; // seconds
 	public final int pipesInRotation = 12;
 	public float sizeGrowth = 0;
-	public final float sizeGrowthStep = 0.02f;
+	public final float sizeGrowthStep = 0.025f;
 	public final float sizeGrowthThreshold = 0.2f;
 	
 	public double deathTimer = 0;
@@ -43,8 +43,8 @@ public class Game_Scene extends CameraScene {
 	private static final int BIRD_STARTING_X = MainActivity.CAMERA_WIDTH/3;
 	private static final int BIRD_STARTING_Y = MainActivity.CAMERA_HEIGHT/2;
 	
-	private static final double PIPE_TO_SCREEN_POSITION = 0.2;
-	private static final double PIPE_TO_SCREEN_HEIGHT = 0.15;
+	private static final double PIPE_TO_SCREEN_MIN_HEIGHT = 0.15;
+	private static final double PIPE_TO_SCREEN_MAX_HEIGHT = 0.3;
 	
 	ArrayList<Sprite> Pipes = new  ArrayList<Sprite>();	
 	
@@ -100,11 +100,11 @@ public class Game_Scene extends CameraScene {
 	
 	private String GenerateScoreText()
 	{
-		if (MainActivity.main.score < 3)
+		if (MainActivity.main.score < 5)
 			return "Weak! Score: " + MainActivity.main.score;
-		if (MainActivity.main.score < 6)
-			return "Not bad! Score: " + MainActivity.main.score;
 		if (MainActivity.main.score < 10)
+			return "Not bad! Score: " + MainActivity.main.score;
+		if (MainActivity.main.score < 15)
 			return "Much Score: " + MainActivity.main.score;		
 		return "Wicked Sick! Score: " + MainActivity.main.score;		
 	}
@@ -138,12 +138,13 @@ public class Game_Scene extends CameraScene {
 			{
 				spawnTimer = 0;
 				float sino = (float)Math.sin(Pipes.size()*2*Math.PI/pipesInRotation);
+				float coso = (float)Math.sin(-Pipes.size()*2*Math.PI/pipesInRotation);
 				float signo = Math.signum(sino);
 				Sprite newPipe = new Sprite(0, 0, MainActivity.main.Pipe_TR, new VertexBufferObjectManager());
 				newPipe.setX(Math.round(MainActivity.CAMERA_WIDTH * 0.9));
 				newPipe.setY(0);
 				newPipe.setHeight(Math.round(MainActivity.CAMERA_HEIGHT * 
-						(sizeGrowth * signo + PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * sino)));
+						(sizeGrowth + PIPE_TO_SCREEN_MIN_HEIGHT + (PIPE_TO_SCREEN_MAX_HEIGHT - PIPE_TO_SCREEN_MIN_HEIGHT) * sino)));
 				
 				/*Rectangle newPipe = new Rectangle(Math.round(MainActivity.CAMERA_WIDTH * 0.9), 
 					Math.round(MainActivity.CAMERA_HEIGHT * 
@@ -156,7 +157,7 @@ public class Game_Scene extends CameraScene {
 				Sprite newPipe2 = new Sprite(0, 0, MainActivity.main.Pipe_TR, new VertexBufferObjectManager());
 				newPipe2.setX(Math.round(MainActivity.CAMERA_WIDTH * 0.9));
 				newPipe2.setY(Math.round(MainActivity.CAMERA_HEIGHT * 
-						(-sizeGrowth * signo + 1 - PIPE_TO_SCREEN_POSITION + PIPE_TO_SCREEN_HEIGHT * sino)));
+						(1 - (sizeGrowth + PIPE_TO_SCREEN_MIN_HEIGHT + (PIPE_TO_SCREEN_MAX_HEIGHT - PIPE_TO_SCREEN_MIN_HEIGHT) * coso))));
 				
 				newPipe2.setHeight(MainActivity.CAMERA_HEIGHT - newPipe2.getY());
 				
